@@ -8,6 +8,7 @@ import './App.css';
  */
 interface IState {
   data: ServerRespond[],
+  showGraph: boolean, /*create a boolean for a 'showGraph' property in the IState interface*/
 }
 
 /**
@@ -22,6 +23,7 @@ class App extends Component<{}, IState> {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+      showGraph: false, /*this does not allow for the graph to show in the initial state of the app when the user clicks "start streaming data"*/
     };
   }
 
@@ -29,18 +31,30 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    if (this.state.showGraph) { #this condition only renders the graph when the sytate's 'showGraph' property of the App is 'true'
+      return (<Graph data={this.state.data}/>)
+    }
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
-  getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
+  getDataFromServer() { /*modify to contact server and get continuous data instead of just getting data when user clicks button*/
+    let x = 0;
+    const interval = setOnterval(() => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
       // Update the state by creating a new array of data that consists of
       // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+        this.setState{ 
+          data: serverResponds,
+          showGraph: true,
+        });
+      });
+      x++
+      if (x > 1000) {
+        clearInterval(interval);
+      }
+    }, 100);
   }
 
   /**
@@ -62,7 +76,7 @@ class App extends Component<{}, IState> {
             onClick={() => {this.getDataFromServer()}}>
             Start Streaming Data
           </button>
-          <div className="Graph">
+          <div className="Graph"> #codes for the graph coponent
             {this.renderGraph()}
           </div>
         </div>
